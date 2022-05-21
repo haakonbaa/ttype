@@ -7,6 +7,7 @@ import (
     "os"
     "regexp"
     "math/rand"
+    "syscall"
 )
 
 func readTest() {
@@ -17,7 +18,23 @@ func readTest() {
 
 func play() {
     sigs := make(chan os.Signal, 1)
-    signal.Notify(sigs,syscall.SIGINT)
+    signal.Notify(sigs,syscall.SIGWINCH,syscall.SIGINT)
+    go func() {
+        var sig os.Signal
+        for true {
+            sig = <-sigs
+            if sig == syscall.SIGINT {
+                fmt.Printf("\033[?25h")
+                fmt.Printf("\033[28m")
+                os.Exit(1)
+            }
+            if sig == syscall.SIGWINCH {
+                fmt.Println("Screen resize")
+            }
+            fmt.Println("recieved signal")
+            fmt.Println(sig)
+        }
+    } ()
 
 }
 
@@ -30,8 +47,16 @@ func main() {
     }
     // disable input buffering
     exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+    // hide cursor
+    fmt.Printf("\033[?25l")
+    // hide input
+    fmt.Printf("\033[8m")
     // do not display entered characters on the screen
-    exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+    // exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+    play()
+    for true {
+
+    }
     readTest()
 }
 
