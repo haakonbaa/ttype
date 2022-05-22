@@ -26,6 +26,7 @@ func play() {
             if sig == syscall.SIGINT {
                 fmt.Printf("\033[?25h")
                 fmt.Printf("\033[28m")
+                exec.Command("stty", "-F", "/dev/tty", "echo").Run()
                 os.Exit(1)
             }
             if sig == syscall.SIGWINCH {
@@ -35,16 +36,18 @@ func play() {
             fmt.Println(sig)
         }
     } ()
-
+    var b []byte = make([]byte,1)
+    for true {
+        os.Stdin.Read(b)
+        if int(b[0]) == 0b1111111 {
+            fmt.Println("backspace")
+        } else {
+            fmt.Printf("[%s]",string(b))
+        }
+    }
 }
 
 func main() {
-    fmt.Println("Hello World")
-    // highlightFile("test.go","cpp")
-    words := generateWords(5,"./words/english1000")
-    for i, v := range words {
-        fmt.Println(i,v)
-    }
     // disable input buffering
     exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
     // hide cursor
@@ -52,7 +55,12 @@ func main() {
     // hide input
     fmt.Printf("\033[8m")
     // do not display entered characters on the screen
-    // exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+    exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
+    // highlightFile("test.go","cpp")
+    words := generateWords(5,"./words/english1000")
+    for i, v := range words {
+        fmt.Println(i,v)
+    }
     play()
     for true {
 
