@@ -1,6 +1,7 @@
 package main
 
 import (
+    "bufio"
     "fmt"
     "os/exec"
     "os/signal"
@@ -17,6 +18,14 @@ func readTest() {
 }
 
 func play() {
+    // buffer output
+    writer := bufio.NewWriter(os.Stdout)
+    writer.Write([]byte("Hello"))
+    writer.Flush()
+    defer writer.Flush()
+    // create reader
+    reader := bufio.NewReader(os.Stdin)
+    // handle interrupts
     sigs := make(chan os.Signal, 1)
     signal.Notify(sigs,syscall.SIGWINCH,syscall.SIGINT)
     go func() {
@@ -36,14 +45,17 @@ func play() {
             fmt.Println(sig)
         }
     } ()
-    var b []byte = make([]byte,1)
     for true {
-        os.Stdin.Read(b)
-        if int(b[0]) == 0b1111111 {
-            fmt.Println("backspace")
-        } else {
-            fmt.Printf("[%s]",string(b))
+        char, _, err := reader.ReadRune()
+        if err != nil {
+            panic(err)
         }
+        if char == rune('\x7F') {
+            writer.WriteString(fmt.Sprintf("[<-]"))
+        } else {
+            writer.WriteString(fmt.Sprintf("[%c]",char))
+        }
+        writer.Flush()
     }
 }
 
