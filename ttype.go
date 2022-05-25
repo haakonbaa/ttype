@@ -17,10 +17,15 @@ func readTest() {
 	fmt.Println(string(b))
 }
 
+type Word struct {
+    wformat string // formated string to show on screen
+    word string    // string to match with input
+    split rune     // split between this and next word
+}
+
 func play() {
 	// buffer output
 	writer := bufio.NewWriter(os.Stdout)
-	writer.Write([]byte("Hello"))
 	writer.Flush()
 	defer writer.Flush()
 	// create reader
@@ -70,17 +75,21 @@ func random(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-func generateWords(n int, filename string) []string {
+func generateWords(n int, filename string) []Word {
 	reWord := regexp.MustCompile(`[a-zA-Z]+`)
-	strings := make([]string, n)
+	words := make([]Word, n)
 	data, err := os.ReadFile(filename)
 	if err != nil {
 		panic(err)
 	}
 	allWordsInFile := reWord.FindAll(data, -1)
-	fmt.Println(len(allWordsInFile))
 	for i := 0; i < n; i++ {
-		strings[i] = string(allWordsInFile[rand.Intn(len(allWordsInFile)-1)])
+        w :=  string(allWordsInFile[rand.Intn(len(allWordsInFile)-1)])
+        words[i] = Word{
+            wformat: w,
+            word: w,
+            split: rune(' '),
+        }
 	}
-	return strings
+	return words
 }
