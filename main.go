@@ -13,13 +13,13 @@ func main() {
 	// do not display entered characters on the screen
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	// highlightFile("test.go","cpp")
-	words := generateWords(5, "./words/english1000")
+	words := generateWords(30, "./words/english1000")
 	for i, v := range *words {
 		fmt.Println(i, v)
 	}
 	play(words)
-    fmt.Printf("\033[?25h")
+	fmt.Printf("\033[?25h")
 	fmt.Printf("\033[28m")
-    fmt.Printf("\033[0m") // reset
-    exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	fmt.Printf("\033[0m") // reset
+	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 }
