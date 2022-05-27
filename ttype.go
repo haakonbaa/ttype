@@ -77,10 +77,14 @@ func play(words *[]Word) {
 			panic(err)
 		}
 		if char == (*words)[wordIndex].split {
-			wordIndex += 1
-			if wordIndex >= len(*words) {
-				break
-			}
+            if insertedWords[wordIndex] == "" {
+
+            } else {
+			    wordIndex += 1
+			    if wordIndex >= len(*words) {
+				    break
+			    }
+            }
 		} else if char == rune('\x7f') {
 			// got backspace
 			if len(insertedWords[wordIndex]) > 0 {
