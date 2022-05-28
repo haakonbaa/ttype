@@ -72,21 +72,27 @@ func play(words *[]Word) {
 		}
 		writer.Flush()
 
+		// Handle input logic
 		char, _, err := reader.ReadRune()
 		if err != nil {
 			panic(err)
 		}
 		if char == (*words)[wordIndex].split {
-            if insertedWords[wordIndex] == "" {
+			if insertedWords[wordIndex] == "" {
 
-            } else {
-			    wordIndex += 1
-			    if wordIndex >= len(*words) {
-				    break
-			    }
-            }
+			} else {
+				wordIndex += 1
+				if wordIndex >= len(*words) {
+					break
+				}
+			}
 		} else if char == rune('\x7f') {
 			// got backspace
+			// jump one word back if current word is empty
+			if len(insertedWords[wordIndex]) == 0 {
+				wordIndex = max(0, wordIndex-1)
+			}
+			// erase last letter of word
 			if len(insertedWords[wordIndex]) > 0 {
 				insertedWords[wordIndex] = insertedWords[wordIndex][:len(insertedWords[wordIndex])-1]
 			}
@@ -109,29 +115,32 @@ func formatWordErrors(target, input string, writer *bufio.Writer) {
 		writer.WriteString(target)
 	} else {
 		// if input is longer than target pad target with spacec to length of input
-		for i := 0; i < max(0, len(input)-len(target)); i++ {
+		for i := len(target); i < len(input); i++ {
 			target += string(" ")
 		}
 		// if input is shorter than target, pad input with correct letters of target
 		if len(input) < len(target) {
-			input += target[len(input):len(target)]
+			input += target[len(input):]
 		}
 		// now input and target can easily be compared
-		//writer.WriteString(fmt.Sprintf("[%s]\n[%s]\n",target,input))
+		// writer.WriteString(fmt.Sprintf("target: [%s]\ninput:  [%s]\n",target,input))
 		isCorrect := true
 		for i := 0; i < len(target); i++ {
 			match := target[i] == input[i]
+			// change color in transitions between correct and incorrect letters
 			if match && !isCorrect {
 				// change back to default color
 				writer.WriteString("\033[0m")
 				isCorrect = true
 			} else if !match && isCorrect {
+				// change to red color
 				writer.WriteString("\033[31m")
 				isCorrect = false
 			}
-			writer.WriteString(string(target[i]))
+			writer.WriteString(string(input[i]))
 		}
 		if !isCorrect {
+			// make sure color is normal at EOT
 			writer.WriteString("\033[0m")
 		}
 	}
