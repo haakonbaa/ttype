@@ -23,7 +23,11 @@ type Word struct {
 	split   rune   // split between this and next word
 }
 
-const CLEARSCREEN = "\033[1;1H\033[2J"
+const ANSI_CLEARSCREEN = "\033[1;1H\033[2J"
+const ANSI_SHOWCURSOR  = "\033[?25h"
+const ANSI_RESET       = "\033[0m"
+
+const ANSI_RED         = "\033[31m"
 
 func play(words *[]Word) {
 	// buffer output
@@ -40,9 +44,8 @@ func play(words *[]Word) {
 		for true {
 			sig = <-sigs
 			if sig == syscall.SIGINT {
-				fmt.Printf("\033[?25h")
-				fmt.Printf("\033[28m")
-				fmt.Printf("\033[0m")
+				fmt.Printf(ANSI_SHOWCURSOR)
+				fmt.Printf(ANSI_RESET)
 				exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 				os.Exit(1)
 			}
@@ -58,7 +61,7 @@ func play(words *[]Word) {
 	fmt.Println(insertedWords, wordIndex)
 	for wordIndex < len(*words) {
 		// begin writing to screen
-		writer.WriteString(CLEARSCREEN)
+		writer.WriteString(ANSI_CLEARSCREEN)
 		// Nice debug information:
 		writer.WriteString(fmt.Sprintf("%v\n", insertedWords))
 		for i := 0; i < len(*words); i++ {
@@ -130,18 +133,18 @@ func formatWordErrors(target, input string, writer *bufio.Writer) {
 			// change color in transitions between correct and incorrect letters
 			if match && !isCorrect {
 				// change back to default color
-				writer.WriteString("\033[0m")
+				writer.WriteString(ANSI_RESET)
 				isCorrect = true
 			} else if !match && isCorrect {
 				// change to red color
-				writer.WriteString("\033[31m")
+				writer.WriteString(ANSI_RED)
 				isCorrect = false
 			}
 			writer.WriteString(string(input[i]))
 		}
 		if !isCorrect {
 			// make sure color is normal at EOT
-			writer.WriteString("\033[0m")
+			writer.WriteString(ANSI_RESET)
 		}
 	}
 	// writer.WriteString(input)
