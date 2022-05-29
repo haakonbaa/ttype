@@ -7,9 +7,12 @@ import (
 
 func main() {
 	// disable input buffering
-	exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
-	fmt.Printf("\033[?25l") // hide cursor
-	//f mt.Printf("\033[8m") // hide input
+	 exec.Command("stty", "-F", "/dev/tty", "cbreak", "min", "1").Run()
+    // hide cursor
+	fmt.Printf("\033[?25l") 
+    // enter alternative screen
+    fmt.Printf(ANSI_ENTERALTSCREEN)
+	fmt.Printf("\033[8m") // hide input
 	// do not display entered characters on the screen
 	exec.Command("stty", "-F", "/dev/tty", "-echo").Run()
 	// highlightFile("test.go","cpp")
@@ -18,8 +21,11 @@ func main() {
 		fmt.Println(i, v)
 	}
 	play(words)
+    /*
 	fmt.Printf("\033[?25h")
 	fmt.Printf("\033[28m")
 	fmt.Printf("\033[0m") // reset
 	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+    */
+    QuitProgram()
 }

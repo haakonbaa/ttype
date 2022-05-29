@@ -23,11 +23,22 @@ type Word struct {
 	split   rune   // split between this and next word
 }
 
-const ANSI_CLEARSCREEN = "\033[1;1H\033[2J"
-const ANSI_SHOWCURSOR  = "\033[?25h"
-const ANSI_RESET       = "\033[0m"
+const ANSI_CLEARSCREEN    = "\033[1;1H\033[2J"
+const ANSI_ENTERALTSCREEN = "\033[?1049h"
+const ANSI_EXITALTSCREEN  = "\033[?1049l"
+const ANSI_SHOWCURSOR     = "\033[?25h"
+const ANSI_RESET          = "\033[0m"
+const ANSI_RED            = "\033[31m"
 
-const ANSI_RED         = "\033[31m"
+// should be called on program exit
+func QuitProgram() {
+    // make shure all colors and buffers are in order
+    fmt.Print(ANSI_SHOWCURSOR)
+	fmt.Print(ANSI_RESET)
+    fmt.Print(ANSI_EXITALTSCREEN)
+	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
+	os.Exit(1)
+}
 
 func play(words *[]Word) {
 	// buffer output
@@ -44,10 +55,7 @@ func play(words *[]Word) {
 		for true {
 			sig = <-sigs
 			if sig == syscall.SIGINT {
-				fmt.Printf(ANSI_SHOWCURSOR)
-				fmt.Printf(ANSI_RESET)
-				exec.Command("stty", "-F", "/dev/tty", "echo").Run()
-				os.Exit(1)
+                QuitProgram()
 			}
 			if sig == syscall.SIGWINCH {
 				fmt.Println("Screen resize")
@@ -81,9 +89,7 @@ func play(words *[]Word) {
 			panic(err)
 		}
 		if char == (*words)[wordIndex].split {
-			if insertedWords[wordIndex] == "" {
-
-			} else {
+			if insertedWords[wordIndex] != "" {
 				wordIndex += 1
 				if wordIndex >= len(*words) {
 					break
