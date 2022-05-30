@@ -26,16 +26,20 @@ type Word struct {
 const ANSI_CLEARSCREEN    = "\033[1;1H\033[2J"
 const ANSI_ENTERALTSCREEN = "\033[?1049h"
 const ANSI_EXITALTSCREEN  = "\033[?1049l"
+const ANSI_ENABLEBG       = "\033[45m"
+const ANSI_DISABLEBG      = "\033[0m"
+const ANSI_HIDECURSOR     = "\033[?25l"
 const ANSI_SHOWCURSOR     = "\033[?25h"
 const ANSI_RESET          = "\033[0m"
+const ANSI_WHITE          = "\033[37m"
 const ANSI_RED            = "\033[31m"
 
 // should be called on program exit
 func QuitProgram() {
-    // make shure all colors and buffers are in order
-    fmt.Print(ANSI_SHOWCURSOR)
+	// make shure all colors and buffers are in order
+	fmt.Print(ANSI_SHOWCURSOR)
 	fmt.Print(ANSI_RESET)
-    fmt.Print(ANSI_EXITALTSCREEN)
+	fmt.Print(ANSI_EXITALTSCREEN)
 	exec.Command("stty", "-F", "/dev/tty", "echo").Run()
 	os.Exit(1)
 }
@@ -55,7 +59,7 @@ func play(words *[]Word) {
 		for true {
 			sig = <-sigs
 			if sig == syscall.SIGINT {
-                QuitProgram()
+				QuitProgram()
 			}
 			if sig == syscall.SIGWINCH {
 				fmt.Println("Screen resize")
@@ -74,7 +78,13 @@ func play(words *[]Word) {
 		writer.WriteString(fmt.Sprintf("%v\n", insertedWords))
 		for i := 0; i < len(*words); i++ {
 			if i <= wordIndex {
+				if i == wordIndex {
+					writer.WriteString(ANSI_ENABLEBG)
+				}
 				formatWordErrors((*words)[i].wformat, insertedWords[i], writer)
+				if i == wordIndex {
+					writer.WriteString(ANSI_DISABLEBG)
+				}
 				writer.WriteString(string((*words)[i].split))
 			} else {
 				writer.WriteString((*words)[i].wformat)
@@ -139,7 +149,7 @@ func formatWordErrors(target, input string, writer *bufio.Writer) {
 			// change color in transitions between correct and incorrect letters
 			if match && !isCorrect {
 				// change back to default color
-				writer.WriteString(ANSI_RESET)
+				writer.WriteString(ANSI_WHITE)
 				isCorrect = true
 			} else if !match && isCorrect {
 				// change to red color
